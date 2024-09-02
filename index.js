@@ -140,6 +140,10 @@ try{
       PricePerKg:item.rate,
       TotalAmount:item.total        
     });
+    const availstock = await StockModel.findOne({name:sale.Type,type:sale.Category})
+    const stockit = await StockModel.findOneAndUpdate({name:sale.Type,type:sale.Category},{
+      quantity : Number(availstock.quantity)-Number(sale.NoOfKg)
+    });
 
     await sale.save(); // Save each item to the database
   }
@@ -151,6 +155,7 @@ catch(err){
   
 }
 })
+
 
 
 app.listen(port, async() => {
