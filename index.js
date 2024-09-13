@@ -116,6 +116,178 @@ app.get('/sales',async(req,res)=>{
   }
 })
 
+app.get('/card',async(req,res)=>{
+
+  let chickens = await StockModel.find({'name':'Chicken'});
+    let muttons = await StockModel.find({'name':'Mutton'});
+    let frozens = await StockModel.find({'name':'SKM Frozen item'});
+    let oils = await StockModel.find({'name':'Oil'});
+    let meats = await StockModel.find({'name':'Meat'});  
+    
+    let chicken = Number(chickens[0].stock)+Number(chickens[1].stock);
+    let mutton = muttons[0].stock;
+    let frozen = frozens[0].stock;
+    let oil = oils[0].stock;
+    let meat = meats[0].stock;
+
+    let achicken = Number(chickens[0].quantity)+Number(chickens[1].quantity);
+    let amutton = muttons[0].quantity;
+    let afrozen = frozens[0].quantity;
+    let aoil = oils[0].quantity;
+    let ameat = meats[0].quantity;
+
+    res.json({'msg':'success','Items':{chicken,mutton,frozen,oil,meat,achicken,amutton,afrozen,aoil,ameat}});
+
+})
+
+app.get('/chart',async(req,res)=>{
+
+  let chickens = await SalesModel.find({'Type':'Chicken'});
+    let muttons = await SalesModel.find({'Type':'Mutton'});
+    let frozens = await SalesModel.find({'Type':'SKM Frozen item'});
+    let oils = await SalesModel.find({'Type':'Oil'});
+    let meats = await SalesModel.find({'Type':'Meat'});
+
+    var chicken = 0;
+    chickens.map((e)=>{
+      chicken+=Number(e.NoOfKg);
+    })
+
+    var mutton = 0;
+    muttons.map((e)=>{
+      mutton+=Number(e.NoOfKg);
+    })
+
+    var frozen = 0;
+    frozens.map((e)=>{
+      frozen+=Number(e.NoOfKg);
+    })
+
+    var oil = 0;
+    oils.map((e)=>{
+      oil+=Number(e.NoOfKg);
+    })
+
+    var meat = 0;
+    meats.map((e)=>{
+      meat+=Number(e.NoOfKg);
+    })
+
+    res.json({'msg':'success','Items':{chicken,mutton,meat,frozen,oil}});
+
+})
+
+app.get('/graph',async(req,res)=>{
+  const today = new Date();
+  const currentDay = today.getDay();
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - currentDay);
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // months are 0-based
+    const day = date.getDate();
+    return `${year}-${month}-${day}`;
+  };
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(sunday);
+    day.setDate(sunday.getDate() + i);
+    weekDays.push(formatDate(day));
+  }
+
+  var max = 0;
+
+  let chicken = [];
+  let mutton = [];
+  let frozen = [];
+  let oil = [];
+  let meat = [];
+  let chickdata = await SalesModel.find({'Type':'Chicken'});
+  let muttondata = await SalesModel.find({'Type':'Mutton'});
+  let frozendata = await SalesModel.find({'Type':'SKM Frozen item'});
+  let oildata = await SalesModel.find({'Type':'Oil'});
+  let meetdata = await SalesModel.find({'Type':'Meat'});
+
+  weekDays.map((item)=>{
+    let chickens = chickdata.filter(elem=>(elem.Date == item)) || [];
+    let muttons = muttondata.filter(elem=>(elem.Date == item)) || [];
+    let frozens = frozendata.filter(elem=>(elem.Date == item)) || [];
+    let oils = oildata.filter(elem=>(elem.Date == item)) || [];
+    let meats = meetdata.filter(elem=>(elem.Date == item)) || [];
+
+    var totchicken = 0;
+    chickens.map((e)=>{
+      if(e>max){
+        max=e;
+      }
+      totchicken+=Number(e.NoOfKg);
+    })
+
+    var totmutton = 0;
+    muttons.map((e)=>{
+      if(e>max){
+        max=e;
+      }
+      totmutton+=Number(e.NoOfKg);
+    })
+
+    var totfrozen = 0;
+    frozens.map((e)=>{
+      if(e>max){
+        max=e;
+      }
+      totfrozen+=Number(e.NoOfKg);
+    })
+
+    var totoil = 0;
+    oils.map((e)=>{
+      if(e>max){
+        max=e;
+      }
+      totoil+=Number(e.NoOfKg);
+    })
+
+    var totmeat = 0;
+    meats.map((e)=>{
+      if(e>max){
+        max=e;
+      }
+      totmeat+=Number(e.NoOfKg);
+    })
+
+    chicken.push(totchicken);
+    mutton.push(totmutton);
+    frozen.push(totfrozen);
+    oil.push(totoil);
+    meat.push(totmeat);
+  })
+
+  max = Math.floor(max/10) + 10;
+
+  res.json({'msg':'success','Items':{chicken,mutton,frozen,oil,meat,max}});
+})
+
+app.get('/today',async(req,res)=>{
+  const today = new Date();
+const year = today.getFullYear();
+const month = today.getMonth() + 1; 
+const day = today.getDate();
+const formattedDate = `${year}-${month}-${day}`;
+  try{
+    const data = await SalesModel.find({'Date':formattedDate});
+         var cost = 0;
+      data.map((item) => {
+        let val = (item.TotalAmount).substring(1);
+        cost += Number(val);
+      })
+    res.json({'Items':data,'msg':'success','total':cost})
+  }
+  catch(err){
+    console.log(err);
+    res.json({'msg':'Data Not Found'})    
+  }
+})
+
 app.post('/sales',async(req,res)=>{
   const timestamp = Date.now();
   const currentDate = new Date(timestamp);  // Changed variable name to currentDate
