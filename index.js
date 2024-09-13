@@ -11,7 +11,9 @@ const {SalesModel} = require('./Model/sales.model');
 
 const app = express();
 const port = process.env.PORT || 4000;
-app.use(cors());
+app.use(cors({
+  origin: '*' // replace with '*' to allow all origins
+}));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
