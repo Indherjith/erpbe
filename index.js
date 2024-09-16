@@ -272,10 +272,10 @@ app.get('/graph',async(req,res)=>{
 
 app.get('/today',async(req,res)=>{
   const today = new Date();
-const year = today.getFullYear();
-const month = today.getMonth() + 1; 
-const day = today.getDate();
-const formattedDate = `${year}-${month}-${day}`;
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1; 
+  const day = today.getDate();
+  const formattedDate = `${year}-${month}-${day}`;
   try{
     const data = await SalesModel.find({'Date':formattedDate});
          var cost = 0;
@@ -284,6 +284,117 @@ const formattedDate = `${year}-${month}-${day}`;
         cost += Number(val);
       })
     res.json({'Items':data,'msg':'success','total':cost})
+  }
+  catch(err){
+    console.log(err);
+    res.json({'msg':'Data Not Found'})    
+  }
+})
+
+app.post('/dayat',async(req,res)=>{
+  const today = new Date(req.body.date);
+  
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1; 
+  const day = today.getDate();
+  const formattedDate = `${year}-${month}-${day}`;
+  try{
+    const data = await SalesModel.find({'Date':formattedDate});
+         var cost = 0;
+      data.map((item) => {
+        let val = (item.TotalAmount).substring(1);
+        cost += Number(val);
+      })
+
+      const today = new Date(req.body.date);
+      const currentDay = today.getDay();
+      const sunday = new Date(today);
+      sunday.setDate(today.getDate() - currentDay);
+      const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; // months are 0-based
+        const day = date.getDate();
+        return `${year}-${month}-${day}`;
+      };
+      const weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(sunday);
+        day.setDate(sunday.getDate() + i);
+        weekDays.push(formatDate(day));
+      }
+
+      var max = 0;
+
+      let chicken = [];
+      let mutton = [];
+      let frozen = [];
+      let oil = [];
+      let meat = [];
+      let chickdata = await SalesModel.find({'Type':'Chicken'});
+      let muttondata = await SalesModel.find({'Type':'Mutton'});
+      let frozendata = await SalesModel.find({'Type':'SKM Frozen item'});
+      let oildata = await SalesModel.find({'Type':'Oil'});
+      let meetdata = await SalesModel.find({'Type':'Meat'});
+
+      weekDays.map((item)=>{
+        let chickens = chickdata.filter(elem=>(elem.Date == item)) || [];
+        let muttons = muttondata.filter(elem=>(elem.Date == item)) || [];
+        let frozens = frozendata.filter(elem=>(elem.Date == item)) || [];
+        let oils = oildata.filter(elem=>(elem.Date == item)) || [];
+        let meats = meetdata.filter(elem=>(elem.Date == item)) || [];
+
+        var totchicken = 0;
+        chickens.map((e)=>{
+          totchicken+=Number(e.NoOfKg);
+        })
+
+        var totmutton = 0;
+        muttons.map((e)=>{
+          totmutton+=Number(e.NoOfKg);
+        })
+
+        var totfrozen = 0;
+        frozens.map((e)=>{
+          totfrozen+=Number(e.NoOfKg);
+        })
+
+        var totoil = 0;
+        oils.map((e)=>{
+          totoil+=Number(e.NoOfKg);
+        })
+
+        var totmeat = 0;
+        meats.map((e)=>{
+          totmeat+=Number(e.NoOfKg);
+        })
+
+        if(totchicken > max){
+          max = totchicken;
+        }
+        if(totmutton > max){
+          max = totmutton;
+        }
+        if(totfrozen > max){
+          max = totfrozen;
+        }
+        if(totmeat > max){
+          max = totmeat;
+        }
+        if(totoil > max){
+          max = totoil;
+        }
+
+        chicken.push(totchicken);
+        mutton.push(totmutton);
+        frozen.push(totfrozen);
+        oil.push(totoil);
+        meat.push(totmeat);
+      })
+
+      max = (Math.floor(max/10)*10) + 10;
+
+
+    res.json({'Items':data,'msg':'success','total':cost,'graphItems':{chicken,mutton,frozen,oil,meat,max}})
   }
   catch(err){
     console.log(err);
