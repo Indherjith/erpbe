@@ -126,17 +126,17 @@ app.get('/card',async(req,res)=>{
     let oils = await StockModel.find({'name':'Oil'});
     let meats = await StockModel.find({'name':'Meat'});  
     
-    let chicken = Number(chickens[0].stock)+Number(chickens[1].stock);
-    let mutton = muttons[0].stock;
-    let frozen = frozens[0].stock;
-    let oil = oils[0].stock;
-    let meat = meats[0].stock;
+    let chicken = chickens.length !== 0 ? (Number(chickens[0].stock) || 0)+(Number(chickens[1].stock) || 0) : 0;
+    let mutton = muttons.length !== 0 ? muttons[0].stock : 0;
+    let frozen = frozens.length !== 0 ? frozens[0].stock : 0;
+    let oil = oils.length !== 0 ? oils[0].stock : 0;
+    let meat = meats.length !==0  ? meats[0].stock : 0;
 
-    let achicken = Number(chickens[0].quantity)+Number(chickens[1].quantity);
-    let amutton = muttons[0].quantity;
-    let afrozen = frozens[0].quantity;
-    let aoil = oils[0].quantity;
-    let ameat = meats[0].quantity;
+    let achicken =chickens.length !== 0 ?( Number(chickens[0].quantity) || 0)+(Number(chickens[1].quantity) || 0) : 0;
+    let amutton =muttons.length !== 0 ? muttons[0].quantity : 0;
+    let afrozen = frozens.length !== 0 ? frozens[0].quantity : 0;
+    let aoil =  oils.length !== 0 ? oils[0].quantity : 0;
+    let ameat =  meats.length !==0  ? meats[0].quantity : 0;
 
     res.json({'msg':'success','Items':{chicken,mutton,frozen,oil,meat,achicken,amutton,afrozen,aoil,ameat}});
 
@@ -219,43 +219,44 @@ app.get('/graph',async(req,res)=>{
 
     var totchicken = 0;
     chickens.map((e)=>{
-      if(e>max){
-        max=e;
-      }
       totchicken+=Number(e.NoOfKg);
     })
 
     var totmutton = 0;
     muttons.map((e)=>{
-      if(e>max){
-        max=e;
-      }
       totmutton+=Number(e.NoOfKg);
     })
 
     var totfrozen = 0;
     frozens.map((e)=>{
-      if(e>max){
-        max=e;
-      }
       totfrozen+=Number(e.NoOfKg);
     })
 
     var totoil = 0;
     oils.map((e)=>{
-      if(e>max){
-        max=e;
-      }
       totoil+=Number(e.NoOfKg);
     })
 
     var totmeat = 0;
     meats.map((e)=>{
-      if(e>max){
-        max=e;
-      }
       totmeat+=Number(e.NoOfKg);
     })
+
+    if(totchicken > max){
+      max = totchicken;
+    }
+    if(totmutton > max){
+      max = totmutton;
+    }
+    if(totfrozen > max){
+      max = totfrozen;
+    }
+    if(totmeat > max){
+      max = totmeat;
+    }
+    if(totoil > max){
+      max = totoil;
+    }
 
     chicken.push(totchicken);
     mutton.push(totmutton);
@@ -264,7 +265,7 @@ app.get('/graph',async(req,res)=>{
     meat.push(totmeat);
   })
 
-  max = Math.floor(max/10) + 10;
+  max = (Math.floor(max/10)*10) + 10;
 
   res.json({'msg':'success','Items':{chicken,mutton,frozen,oil,meat,max}});
 })
